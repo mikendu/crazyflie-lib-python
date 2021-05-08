@@ -410,6 +410,8 @@ class Memory():
                 for m in mem_addr_raw:
                     mem_addr += '{:02X}'.format(m)
 
+                # print("memory", mem_id, "with type", MemoryElement.type_to_string(mem_type),
+                # "and raw type", hex(mem_type), "and size", mem_size)
                 if (not self.get_mem(mem_id)):
                     if mem_type == MemoryElement.TYPE_1W:
                         mem = OWElement(id=mem_id, type=mem_type,

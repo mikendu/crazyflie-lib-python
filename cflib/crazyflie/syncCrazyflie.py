@@ -109,7 +109,7 @@ class SyncCrazyflie:
             self._disconnect_event.set()
 
     def _add_callbacks(self):
-        self.cf.connected.add_callback(self._connected)
+        self.cf.setup_complete.add_callback(self._connected)
         self.cf.connection_failed.add_callback(self._connection_failed)
         self.cf.disconnected.add_callback(self._disconnected)
 

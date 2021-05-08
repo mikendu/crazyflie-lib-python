@@ -87,9 +87,12 @@ class Crazyflie():
         self.link_established = Caller()
         # Called when the user requests a connection
         self.connection_requested = Caller()
-        # Called when the link is established and the TOCs (that are not
-        # cached) have been downloaded
+        # Called when the link is established
         self.connected = Caller()
+
+        # Called when the TOCs (that are not cached) have been downloaded
+        self.setup_complete = Caller()
+
         # Called if establishing of the link fails (i.e times out)
         self.connection_failed = Caller()
         # Called for every packet received
@@ -127,6 +130,7 @@ class Crazyflie():
         self.packet_received.add_callback(self._check_for_initial_packet_cb)
         self.packet_received.add_callback(self._check_for_answers)
 
+        self._setup_in_progress = False
         self._answer_patterns = {}
 
         self._send_lock = Lock()
@@ -160,6 +164,7 @@ class Crazyflie():
         """Start the connection setup by refreshing the TOCs"""
         logger.info('We are connected[%s], request connection setup',
                     self.link_uri)
+        self._setup_in_progress = True
         self.platform.fetch_platform_informations(self._platform_info_fetched)
 
     def _platform_info_fetched(self):
@@ -213,6 +218,12 @@ class Crazyflie():
         self.link_established.call(self.link_uri)
         self.packet_received.remove_callback(self._check_for_initial_packet_cb)
 
+    def on_params_flushed(self):
+        if (self._setup_in_progress and self.link and self.state == State.CONNECTED):
+            self._setup_in_progress = False
+            self.state = State.SETUP_FINISHED
+            self.setup_complete.call(self.link_uri)
+
     def open_link(self, link_uri):
         """
         Open the communication link to a copter at the given URI and setup the
@@ -263,6 +274,14 @@ class Crazyflie():
             self.link = None
         self._answer_patterns = {}
         self.disconnected.call(self.link_uri)
+
+    @property
+    def auto_ping(self):
+        return self.link.auto_ping
+
+    @auto_ping.setter
+    def auto_ping(self, value):
+        self.link.auto_ping = value
 
     """Check if the communication link is open or not."""
 

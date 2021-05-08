@@ -138,6 +138,7 @@ class CfLinkCppDriver(CRTPDriver):
         """
         'cflinkcpp'
 
+    @staticmethod
     def scan_interface(self, address=None):
         """
         Scan interface for available Crazyflie quadcopters and return a list
@@ -151,6 +152,7 @@ class CfLinkCppDriver(CRTPDriver):
         result = [(uri, '') for uri in uris]
         return result
 
+    @staticmethod
     def scan_selected(self, uris):
         """
         Scan interface for available Crazyflie quadcopters and return a list
@@ -174,6 +176,14 @@ class CfLinkCppDriver(CRTPDriver):
         """Close the link"""
         self._connection.close()
         self._connection = None
+
+    @property
+    def auto_ping(self):
+        return self._connection.auto_ping
+
+    @auto_ping.setter
+    def auto_ping(self, value):
+        self._connection.auto_ping = value
 
     def _recompute_link_quality_timer(self):
         if self._connection is None:

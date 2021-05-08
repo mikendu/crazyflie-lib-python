@@ -125,7 +125,7 @@ class Param():
         self.param_updater = None
 
         self.param_updater = _ParamUpdater(
-            self.cf, self._useV2, self._param_updated)
+            self.cf, self._useV2, self._param_updated, crazyflie.on_params_flushed)
         self.param_updater.start()
 
         self.cf.disconnected.add_callback(self._disconnected)
@@ -283,7 +283,7 @@ class _ParamUpdater(Thread):
     """This thread will update params through a queue to make sure that we
     get back values"""
 
-    def __init__(self, cf, useV2, updated_callback):
+    def __init__(self, cf, useV2, updated_callback, flush_callback):
         """Initialize the thread"""
         Thread.__init__(self)
         self.setDaemon(True)
@@ -291,6 +291,7 @@ class _ParamUpdater(Thread):
         self.cf = cf
         self._useV2 = useV2
         self.updated_callback = updated_callback
+        self.flush_callback = flush_callback
         self.request_queue = Queue()
         self.cf.add_port_callback(CRTPPort.PARAM, self._new_packet_cb)
         self._should_close = False
@@ -345,15 +346,16 @@ class _ParamUpdater(Thread):
     def run(self):
         while not self._should_close:
             pk = self.request_queue.get()  # Wait for request update
-            self.wait_lock.acquire()
-            if self.cf.link:
-                if self._useV2:
-                    self._req_param = struct.unpack('<H', pk.data[:2])[0]
-                    self.cf.send_packet(
-                        pk, expected_reply=(tuple(pk.data[:2])))
-                else:
-                    self._req_param = pk.data[0]
-                    self.cf.send_packet(
-                        pk, expected_reply=(tuple(pk.data[:1])))
-            else:
-                self.wait_lock.release()
+            with self.wait_lock:
+                if self.cf.link:
+                    if self._useV2:
+                        self._req_param = struct.unpack('<H', pk.data[:2])[0]
+                        self.cf.send_packet(
+                            pk, expected_reply=(tuple(pk.data[:2])))
+                    else:
+                        self._req_param = pk.data[0]
+                        self.cf.send_packet(
+                            pk, expected_reply=(tuple(pk.data[:1])))
+
+                if (self.request_queue.empty()):
+                    self.flush_callback()

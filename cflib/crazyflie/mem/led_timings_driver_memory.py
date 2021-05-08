@@ -41,13 +41,12 @@ class LEDTimingsDriverMemory(MemoryElement):
 
         self.timings = []
 
-    def add(self, time, rgb, leds=0, fade=False, rotate=0):
+    def add(self, duration_seconds, r, g, b):
         self.timings.append({
-            'time': time,
-            'rgb': rgb,
-            'leds': leds,
-            'fade': fade,
-            'rotate': rotate
+            'duration': duration_seconds,
+            'r': r,
+            'g': g,
+            'b': b
         })
 
     def write_data(self, write_finished_cb):
@@ -56,24 +55,33 @@ class LEDTimingsDriverMemory(MemoryElement):
 
         data = []
         for timing in self.timings:
+            print("Timing: ", timing)
+
+            # Convert duration from seconds to multiples of 1/100th of a second
+            # This gets capped at 65,535 (two bytes)
+            time_in_secs = timing['duration']
+            time = int(round(100.0 * time_in_secs)) & 0xFFFF
+            time_upper = time >> 8
+            time_lower = time & 0xFF
+
             # In order to fit all the LEDs in one radio packet RGB565 is used
             # to compress the colors. The calculations below converts 3 bytes
             # RGB into 2 bytes RGB565. Then shifts the value of each color to
             # LSB, applies the intensity and shifts them back for correct
             # alignment on 2 bytes.
-            R5 = ((int)((((int(timing['rgb']['r']) & 0xFF) * 249 + 1014) >> 11)
+            R5 = ((int)((((int(timing['r']) & 0xFF) * 249 + 1014) >> 11)
                         & 0x1F))
-            G6 = ((int)((((int(timing['rgb']['g']) & 0xFF) * 253 + 505) >> 10)
+            G6 = ((int)((((int(timing['g']) & 0xFF) * 253 + 505) >> 10)
                         & 0x3F))
-            B5 = ((int)((((int(timing['rgb']['b']) & 0xFF) * 249 + 1014) >> 11)
+            B5 = ((int)((((int(timing['b']) & 0xFF) * 249 + 1014) >> 11)
                         & 0x1F))
             led = (int(R5) << 11) | (int(G6) << 5) | (int(B5) << 0)
-            extra = ((timing['leds']) & 0x0F) | (
-                (timing['fade'] << 4) & 0x10) | (
-                (timing['rotate'] << 5) & 0xE0)
+            led_upper = led >> 8
+            led_lower = led & 0xFF
 
-            if (timing['time'] & 0xFF) != 0 or led != 0 or extra != 0:
-                data += [timing['time'] & 0xFF, led >> 8, led & 0xFF, extra]
+            current_buffer = [time_upper, time_lower, led_upper, led_lower]
+            print("Current buffer: ", current_buffer)
+            data += current_buffer
 
         data += [0, 0, 0, 0]
         self.mem_handler.write(self, 0x00, bytearray(data), flush_queue=True)

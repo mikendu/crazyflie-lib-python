@@ -54,7 +54,7 @@ class MemoryElement(object):
         if t == MemoryElement.TYPE_1W:
             return '1-wire'
         if t == MemoryElement.TYPE_DRIVER_LEDTIMING:
-            return 'LED memory driver'
+            return 'LED timing driver'
         if t == MemoryElement.TYPE_DRIVER_LED:
             return 'LED driver'
         if t == MemoryElement.TYPE_LOCO:
