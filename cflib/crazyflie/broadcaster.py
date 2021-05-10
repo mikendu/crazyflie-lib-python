@@ -7,6 +7,7 @@ import re
 from threading import Event
 from cflib.crazyflie import HighLevelCommander
 from cflib.crtp.cflinkcppdriver import CfLinkCppDriver
+from cflib.crtp.radiodriver import Crazyradio
 
 __author__ = 'Bitcraze AB'
 __all__ = ['Broadcaster']
@@ -14,13 +15,12 @@ __all__ = ['Broadcaster']
 
 class Broadcaster():
 
-    ADDRESS_PATTERN = re.compile("radio://(\d|\*)/\d{1,2}/(250K|1M|2M)/broadcast")
 
-    def __init__(self, uri):
-        if not Broadcaster.ADDRESS_PATTERN.match(uri):
-            raise ValueError("Invalid broadcast uri: " + str(uri))
+    def __init__(self, channel, datarate = Crazyradio.DR_2MPS):
+        self._validate_channel(channel)
+        self._validate_datarate(datarate)
 
-        self._uri = uri
+        self._uri = self._construct_uri(channel, datarate)
         self._radio = CfLinkCppDriver()
         self._is_link_open = False
 
@@ -56,4 +56,28 @@ class Broadcaster():
         self._radio.send_packet(packet)
 
     def __str__(self):
-        return "BroadcastLink <" + str(self.uri)  + ">"
+        return "BroadcastLink <" + str(self._uri)  + ">"
+
+    def _construct_uri(self, channel, datarate):
+        return "radiobroadcast://*/" + str(channel) + "/" + self._get_data_rate_string(datarate)
+
+    def _validate_channel(self, channel):
+        if channel and (isinstance(channel, int) or channel.is_integer()):
+            if channel >= 0 and channel <= 127:
+                return
+        raise ValueError("Invalid channel: " + str(channel))
+
+    def _validate_datarate(self, datarate):
+        if not(datarate == Crazyradio.DR_250KPS or \
+            datarate == Crazyradio.DR_1MPS or \
+            datarate == Crazyradio.DR_2MPS):
+            raise ValueError("Invalid data rate: " + str(datarate))
+
+    def _get_data_rate_string(self, datarate):
+        if datarate == Crazyradio.DR_250KPS:
+            return '250K'
+        elif datarate == Crazyradio.DR_1MPS:
+            return '1M'
+        elif datarate == Crazyradio.DR_2MPS:
+            return '2M'
+

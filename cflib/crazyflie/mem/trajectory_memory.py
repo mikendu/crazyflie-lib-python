@@ -70,6 +70,11 @@ class TrajectoryMemory(MemoryElement):
 
         self.mem_handler.write(self, 0x00, data, flush_queue=True)
 
+    def write_raw(self, data, write_finished_cb, write_failed_cb=None):
+        self._write_finished_cb = write_finished_cb
+        self._write_failed_cb = write_failed_cb
+        self.mem_handler.write(self, 0x00, bytearray(data), flush_queue=True)
+
     def write_done(self, mem, addr):
         if self._write_finished_cb and mem.id == self.id:
             logger.debug('Write trajectory data done')

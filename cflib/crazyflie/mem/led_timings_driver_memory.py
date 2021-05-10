@@ -55,8 +55,6 @@ class LEDTimingsDriverMemory(MemoryElement):
 
         data = []
         for timing in self.timings:
-            print("Timing: ", timing)
-
             # Convert duration from seconds to multiples of 1/100th of a second
             # This gets capped at 65,535 (two bytes)
             time_in_secs = timing['duration']
@@ -80,11 +78,16 @@ class LEDTimingsDriverMemory(MemoryElement):
             led_lower = led & 0xFF
 
             current_buffer = [time_upper, time_lower, led_upper, led_lower]
-            print("Current buffer: ", current_buffer)
             data += current_buffer
 
         data += [0, 0, 0, 0]
         self.mem_handler.write(self, 0x00, bytearray(data), flush_queue=True)
+
+    def write_raw(self, data, write_finished_cb):
+        if write_finished_cb is not None:
+            self._write_finished_cb = write_finished_cb
+        self.mem_handler.write(self, 0x00, bytearray(data), flush_queue=True)
+
 
     def write_done(self, mem, addr):
         if mem.id == self.id and self._write_finished_cb:

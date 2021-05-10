@@ -53,6 +53,7 @@ class HighLevelCommander():
 
     TRAJECTORY_LOCATION_MEM = 1
     TRAJECTORY_TYPE_POLY4D = 0
+    TRAJECTORY_TYPE_COMPRESSED = 1
 
     def __init__(self, crazyflie=None):
         """
@@ -193,6 +194,15 @@ class HighLevelCommander():
                                       self.TRAJECTORY_TYPE_POLY4D,
                                       offset,
                                       n_pieces))
+
+    def define_trajectory_compressed(self, trajectory_id, offset):
+        self._send_packet(struct.pack('<BBBBIB',
+                                      self.COMMAND_DEFINE_TRAJECTORY,
+                                      trajectory_id,
+                                      self.TRAJECTORY_LOCATION_MEM,
+                                      self.TRAJECTORY_TYPE_COMPRESSED,
+                                      offset,
+                                      1))
 
     def _send_packet(self, data):
         pk = CRTPPacket()

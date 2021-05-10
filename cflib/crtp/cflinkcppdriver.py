@@ -139,7 +139,7 @@ class CfLinkCppDriver(CRTPDriver):
         'cflinkcpp'
 
     @staticmethod
-    def scan_interface(self, address=None):
+    def scan_interface(address=None):
         """
         Scan interface for available Crazyflie quadcopters and return a list
         with them.
@@ -153,7 +153,7 @@ class CfLinkCppDriver(CRTPDriver):
         return result
 
     @staticmethod
-    def scan_selected(self, uris):
+    def scan_selected(uris):
         """
         Scan interface for available Crazyflie quadcopters and return a list
         with them.
