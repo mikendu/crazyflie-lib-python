@@ -5,16 +5,14 @@ Used for sending high level setpoints to the Crazyflie
 import re
 
 from threading import Event
-from cflib.crazyflie import HighLevelCommander
+from cflib.crazyflie import HighLevelCommander, LightController
 from cflib.crtp.cflinkcppdriver import CfLinkCppDriver
 from cflib.crtp.radiodriver import Crazyradio
 
 __author__ = 'Bitcraze AB'
 __all__ = ['Broadcaster']
 
-
 class Broadcaster():
-
 
     def __init__(self, channel, datarate = Crazyradio.DR_2MPS):
         self._validate_channel(channel)
@@ -25,6 +23,7 @@ class Broadcaster():
         self._is_link_open = False
 
         self.high_level_commander = HighLevelCommander(self)
+        self.light_controller = LightController(self)
 
     def open_link(self):
         if (self.is_link_open()):

@@ -276,6 +276,7 @@ class Param():
                 value_nr = value
 
             pk.data += struct.pack(element.pytype, value_nr)
+            # print("Id for parameter: ", complete_name, " = ", varid)
             self.param_updater.request_param_setvalue(pk)
 
 
