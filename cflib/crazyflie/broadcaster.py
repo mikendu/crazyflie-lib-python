@@ -29,7 +29,7 @@ class Broadcaster():
         if (self.is_link_open()):
             raise Exception('Link already open')
 
-        print('Connecting to %s' % self._uri)
+        # print('Connecting to %s' % self._uri)
         self._radio.connect(self._uri, None, None)
         self._is_link_open = True
 

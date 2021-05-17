@@ -39,7 +39,7 @@ class LightController:
         self.crazyflie.send_packet(color_packet)
         self.crazyflie.send_packet(time_packet)
         if set_effect:
-            self.crazyflie.send_packet(self._effect_change(RingEffect.FADE_EFFECT))
+            self.crazyflie.send_packet(self._effect_change(RingEffect.FADE_EFFECT.value))
 
     def _fade_time(self, duration):
         packet = CRTPPacket()
