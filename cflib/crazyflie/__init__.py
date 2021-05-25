@@ -283,7 +283,8 @@ class Crazyflie():
 
     @auto_ping.setter
     def auto_ping(self, value):
-        self.link.auto_ping = value
+        if self.link:
+            self.link.auto_ping = value
 
     """Check if the communication link is open or not."""
 
