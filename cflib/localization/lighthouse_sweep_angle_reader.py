@@ -78,7 +78,6 @@ class LighthouseSweepAngleAverageReader():
         self._reader = LighthouseSweepAngleReader(cf, self._data_recevied_cb)
         self._ready_cb = ready_cb
         self.nr_of_samples_required = 50
-
         # We store all samples in the storage for averaging when data is collected
         # The storage is a dictionary keyed on the base station channel
         # Each entry is a list of 4 lists, one per sensor.
@@ -92,6 +91,7 @@ class LighthouseSweepAngleAverageReader():
         """
         self._sample_storage = {}
         self._reader.start()
+        # print("---- STARTING ANGLE COLLECTION ----")
 
     def stop_angle_collection(self):
         """Premature stop of data collection"""
@@ -103,6 +103,7 @@ class LighthouseSweepAngleAverageReader():
         return self._sample_storage is not None
 
     def _data_recevied_cb(self, base_station_id, bs_vectors):
+        # print("Got data for base station: ", base_station_id)
         self._store_sample(base_station_id, bs_vectors, self._sample_storage)
         if self._has_collected_enough_data(self._sample_storage):
             self._reader.stop()
@@ -122,8 +123,9 @@ class LighthouseSweepAngleAverageReader():
 
     def _has_collected_enough_data(self, storage):
         for sample_list in storage.values():
-            if len(sample_list[0]) >= self.nr_of_samples_required:
-                return True
+            for i in range(0, len(sample_list)):
+                if len(sample_list[i]) >= self.nr_of_samples_required:
+                    return True
         return False
 
     def _average_all_lists(self, storage):
